@@ -1,4 +1,4 @@
-import Session, { Credentials } from '../src/index.js';
+import Session, { Credentials } from '../lib/index.js';
 import * as config from '../config.js';
 import fs from 'fs';
 import path from 'path';

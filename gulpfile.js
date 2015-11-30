@@ -24,10 +24,15 @@ gulp.task('watch', function() {
   return gulp.watch(['src/**/*.js', 'test/**/*.js'], ['test']);
 });
 
-gulp.task('babel', function() {
+gulp.task('babelsrc', function() {
   return gulp.src(['src/**/*.js'])
     .pipe(babel())
     .pipe(gulp.dest('lib'));
 });
+gulp.task('babelbin', function() {
+  return gulp.src(['test/**/*.js'])
+    .pipe(babel())
+    .pipe(gulp.dest('bin'));
+});
 
-gulp.task('default', ['babel']);
+gulp.task('default', ['babelsrc','babelbin']);

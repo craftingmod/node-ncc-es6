@@ -1,4 +1,4 @@
-import Credentials from '../src/credentials.js';
+import Credentials from '../lib/credentials.js';
 import * as config from '../config.js';
 
 let credentials = new Credentials();
