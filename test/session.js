@@ -16,7 +16,7 @@ let promptP = {
     properties: {
       username: {
         pattern: /^[a-zA-Z\s\-]+$/,
-        message: 'Name must be only letters, spaces, or dashes',
+        message: 'you are babu',
         required: true
       },
       password: {
@@ -26,17 +26,17 @@ let promptP = {
     }
 };
 fs.exists('../auth.json', (exists) => {
-	if (!exists && config.username == null || config.password == null){
+	if (!exists && (config.username == null || config.password == null)){
 		prompt.start();
+		prompt.get(promptP,(err, result) => {
+			if(err) {console.log('No Input, Nope.');}else{
+			    console.log('confirmed username: ' + result.username);
+			    credentials = new Credentials(result.username,result.password);
+			    main();
+			}
+		});
 	}else{
 		main();
-	}
-});
-prompt.get(promptP,(err, result) => {
-	if(err) {console.log('No Input, Nope.');}else{
-	    console.log('confirmed username: ' + result.username);
-	    credentials = new Credentials(result.username,result.password);
-	    main();
 	}
 });
 
