@@ -32,6 +32,7 @@ fs.exists('../auth.json', (exists) => {
 			if(err) {console.log('No Input, Nope.');}else{
 			    console.log('confirmed username: ' + result.username);
 			    credentials = new Credentials(result.username,result.password);
+			    session.credentials = credentials;
 			    main();
 			}
 		});
