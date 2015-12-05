@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { Ber } from 'asn1';
 import { RSA_PKCS1_PADDING } from 'constants';
+import NodeRSA from 'node-rsa';
 
 function linebrk(str, maxLen) {
   let res = '';
@@ -30,14 +31,32 @@ export default function encryptKey(keyString, username, password) {
   bodyWriter.endSequence();
   let key = '-----BEGIN RSA PUBLIC KEY-----\n';
   key += linebrk(bodyWriter.buffer.toString('base64'), 64);
-  key += '\n-----END RSA PUBLIC KEY-----\n';
-  // Encode credentials using PEM key
+  key += '\n-----END RSA PUBLIC KEY-----';
+  
+  // create nodeRSA key class
+  let encryptV10 = new NodeRSA(key,'pkcs1-public-pem',{
+    encryptionScheme: {
+      scheme: 'pkcs1'
+    }
+    });
+  // encrypt
+  let encryptBuffer = new Buffer(getEncChar(sessionKey) +
+    getEncChar(username) + getEncChar(password));
+  let encrypted = encryptV10.encrypt(encryptBuffer,'hex');
+  return {
+    keyName, key: encrypted
+  };
+  /*
+
+    // Encode credentials using PEM key
   let encryptBuffer = new Buffer(getEncChar(sessionKey) +
     getEncChar(username) + getEncChar(password));
   let encrypted = crypto.publicEncrypt({
     key, padding: RSA_PKCS1_PADDING
   }, encryptBuffer);
+  console.log(encrypted.toString('hex'));
   return {
     keyName, key: encrypted.toString('hex')
   };
+  */
 }

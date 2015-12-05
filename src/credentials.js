@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 import encryptKey from './loginEncrypt.js';
 import { CHAT_HOME_URL } from './config.js';
 import debug from 'debug';
+import Promise from 'promise';
 
 const log = debug('ncc:credentials');
 

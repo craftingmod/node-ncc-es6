@@ -6,11 +6,8 @@ import values from 'lodash.values';
 import Promise from 'promise';
 import prompt from 'prompt';
 
-let credentials = new Credentials(
-  config.username,
-  config.password
-);
-let session = new Session(credentials);
+let credentials;
+let session;
 
 let promptP = {
     properties: {
@@ -25,6 +22,57 @@ let promptP = {
       }
     }
 };
+let readJSON = () => {
+	return new Promise((resolve, reject) => {
+		fs.readFile('../auth.json', 'utf8', (err, data) => {
+			if (err) return reject();
+			return resolve(data);
+		});
+	})
+	.then(JSON.parse, () => null)
+	.then(cookieJar => new Credentials(null,null,cookieJar));
+};
+	
+
+let promp = Promise.denodeify(prompt.get);
+new Promise((resolve,reject) => {
+	fs.exists('../auth.json', (exists) => {
+		if(!exists) return resolve();
+		else return reject();
+	});
+})
+.then(() => {
+	prompt.start();
+	return new Promise(resolve => {
+		prompt.get(promptP,(err,result) => {
+		resolve(result);
+	    });	
+	})
+	.then(result => new Credentials(result.username,result.password));
+}, () => {
+	return readJSON();
+})
+.then((credit) => {
+	console.log('confirmed username: ');
+	credentials = credit;
+	return credentials.validateLogin();
+},() => console.log("falled."))
+.then(username => {
+	    console.log('Logged in with username', username);
+	  }, () => {
+	    console.log('Logging in');
+	    return credentials.login()
+	      .then(() => fs.writeFile('../auth.json',
+	        JSON.stringify(credentials.getCookieJar())));
+})
+.then(() => {
+	session = new Session(credentials);
+	session.connect();
+	})
+.catch(err => {
+	console.log(err.stack);
+});
+/*
 fs.exists('../auth.json', (exists) => {
 	if (!exists && (config.username == null || config.password == null)){
 		prompt.start();
@@ -37,9 +85,11 @@ fs.exists('../auth.json', (exists) => {
 			}
 		});
 	}else{
+		session.credentials = new Credentials();
 		main();
 	}
 });
+*/
 
 function main(){
 	new Promise((resolve, reject) => {
