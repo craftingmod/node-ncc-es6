@@ -7,7 +7,7 @@ import Promise from 'promise';
 import prompt from 'prompt';
 
 let credentials;
-let session;
+let session = new Session();
 
 let promptP = {
     properties: {
@@ -66,7 +66,7 @@ new Promise((resolve,reject) => {
 	        JSON.stringify(credentials.getCookieJar())));
 })
 .then(() => {
-	session = new Session(credentials);
+	session.credentials = credentials;
 	session.connect();
 	})
 .catch(err => {
