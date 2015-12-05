@@ -7,7 +7,7 @@ import Promise from 'promise';
 import prompt from 'prompt';
 
 let credentials;
-let session = new Session();
+let session;
 
 let promptP = {
     properties: {
@@ -53,9 +53,11 @@ new Promise((resolve,reject) => {
 	return readJSON();
 })
 .then((credit) => {
-	console.log('confirmed username: ');
+	console.log('confirmed username: ' +credit.hello());
 	credentials = credit;
-	return credentials.validateLogin();
+	session = new Session(credit);
+	//session.credentials = credit;
+	return credit.validateLogin();
 },() => console.log("falled."))
 .then(username => {
 	    console.log('Logged in with username', username);
@@ -66,7 +68,6 @@ new Promise((resolve,reject) => {
 	        JSON.stringify(credentials.getCookieJar())));
 })
 .then(() => {
-	session.credentials = credentials;
 	session.connect();
 	})
 .catch(err => {

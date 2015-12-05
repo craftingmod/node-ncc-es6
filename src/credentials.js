@@ -140,6 +140,9 @@ class Credentials extends EventEmitter {
   inspect() {
     return 'Credentials information';
   }
+  hello() {
+    return 'world~';
+  }
 }
 
 export default Credentials;
