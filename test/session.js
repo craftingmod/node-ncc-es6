@@ -4,7 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import values from 'lodash.values';
 import Promise from 'promise';
-import prompt from 'prompt';
+import Prompt from 'prompt';
+import debug from 'debug';
+
+const log = debug('ncc:session');
 
 let credentials;
 let session;
@@ -34,7 +37,6 @@ let readJSON = () => {
 };
 	
 
-let promp = Promise.denodeify(prompt.get);
 new Promise((resolve,reject) => {
 	fs.exists('../auth.json', (exists) => {
 		if(!exists) return resolve();
@@ -42,25 +44,27 @@ new Promise((resolve,reject) => {
 	});
 })
 .then(() => {
-	prompt.start();
+	Prompt.start();
 	return new Promise(resolve => {
-		prompt.get(promptP,(err,result) => {
+		Prompt.get(promptP,(err,result) => {
 		resolve(result);
 	    });	
 	})
 	.then(result => new Credentials(result.username,result.password));
 }, () => {
+	log('reading json');
 	return readJSON();
 })
 .then((credit) => {
-	console.log('confirmed username: ' +credit.hello());
+	log('received credit');
 	credentials = credit;
-	session = new Session(credit);
+	session = new Session(credentials);
 	//session.credentials = credit;
-	return credit.validateLogin();
-},() => console.log("falled."))
+	return credentials.validateLogin();
+},() => log("no received credit. falled."))
 .then(username => {
 	    console.log('Logged in with username', username);
+		credentials.username = username;
 	  }, () => {
 	    console.log('Logging in');
 	    return credentials.login()
@@ -68,11 +72,44 @@ new Promise((resolve,reject) => {
 	        JSON.stringify(credentials.getCookieJar())));
 })
 .then(() => {
+	session.on('error', (error) => {
+	  console.log(error);
+	});
+	session.on('message', message =>  {
+	  console.log(message);
+	  if (message.room.load === 2 && !message.room.loading) {
+	    session.syncRoom(message.room);
+	  }
+	  if (message.type !== 'text') return;
+	  if (message.message === '!es6txt') {
+	    session.sendText(message.room, 'Hello, world!');
+	  }
+	  if (message.message === '!es6sticker') {
+	    session.sendSticker(message.room, 'moon_and_james-2');
+	  }
+	  if (message.message === '!es6image') {
+	    session.sendImage(message.room,
+	      fs.createReadStream(path.join(__dirname, 'imagetest.png')));
+	  }
+	  if (message.message === '!userList') {
+	    session.sendText(message.room,
+	      values(message.room.users).map(user => user.nickname).join(', '));
+	  }
+	  if (message.message.slice(0, 5) === '!node' &&
+	    message.user.id === session.username
+	  ) {
+	    // Meh. I'm too lazy.
+	    session.sendText(message.room, eval(message.message.slice(6)));
+	  }
+	});
+})
+.then(() => {
 	session.connect();
-	})
+})
 .catch(err => {
 	console.log(err.stack);
 });
+
 /*
 fs.exists('../auth.json', (exists) => {
 	if (!exists && (config.username == null || config.password == null)){
@@ -115,35 +152,5 @@ function main(){
 	    console.log(err.stack);
 	  });
 
-	session.on('error', (error) => {
-	  console.log(error);
-	});
 
-	session.on('message', message =>  {
-	  console.log(message);
-	  if (message.room.load === 2 && !message.room.loading) {
-	    session.syncRoom(message.room);
-	  }
-	  if (message.type !== 'text') return;
-	  if (message.message === '!es6txt') {
-	    session.sendText(message.room, 'Hello, world!');
-	  }
-	  if (message.message === '!es6sticker') {
-	    session.sendSticker(message.room, 'moon_and_james-2');
-	  }
-	  if (message.message === '!es6image') {
-	    session.sendImage(message.room,
-	      fs.createReadStream(path.join(__dirname, 'imagetest.png')));
-	  }
-	  if (message.message === '!userList') {
-	    session.sendText(message.room,
-	      values(message.room.users).map(user => user.nickname).join(', '));
-	  }
-	  if (message.message.slice(0, 5) === '!node' &&
-	    message.user.id === session.username
-	  ) {
-	    // Meh. I'm too lazy.
-	    session.sendText(message.room, eval(message.message.slice(6)));
-	  }
-	});
 }
