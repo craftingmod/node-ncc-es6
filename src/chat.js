@@ -28,7 +28,7 @@ const PromptConfig = {
 
 export default class chat {
 	constructor(){
-		console.log("hello, constructor!");
+		log("constructed chat library.");
 		this.mapArray = [];
 		this.maps = new HashMap();
 	}
@@ -59,7 +59,7 @@ export default class chat {
 	login(){
 		let _this = this;
 		new Promise((resolve,reject) => {
-					console.log("Hi!");
+					log('finding auth.json');
 	        fs.exists('../auth.json', (exists) => {
 				if(!exists) return resolve();
 				else return reject();
@@ -90,10 +90,11 @@ export default class chat {
 			return _this.credentials.validateLogin();
 		},() => log("no received credit. falled."))
 		.then(username => {
+			if(username == null) {console.log("not authed. nope.");return;}
 		    console.log('Logged in with username', username);
 			_this.credentials.username = username;
 		}, () => {
-	 	    console.log('Logging in');
+	 	    log('Logging in');
 		    return _this.credentials.login()
 	            .then(() => fs.writeFile('../auth.json',
 	            JSON.stringify(_this.credentials.getCookieJar())));
